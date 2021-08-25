@@ -22,7 +22,7 @@ namespace BankingDomain
             }
         }
 
-        public void Deposit(decimal amountToDeposit)
+        public virtual void Deposit(decimal amountToDeposit)
         {
             _balance += amountToDeposit;
         }
