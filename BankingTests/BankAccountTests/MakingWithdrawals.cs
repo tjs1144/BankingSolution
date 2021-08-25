@@ -1,4 +1,6 @@
 ﻿using BankingDomain;
+using BankingTests.TestDoubles;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +12,24 @@ namespace BankingTests
 {
     public class MakingWithdrawals
     {
+        private readonly BankAccount _account;
+        private readonly decimal _openingBalance;
+        public MakingWithdrawals()
+        {
+            _account = new BankAccount(new DummyBonusCalculator(), new Mock<INarcOnWithdrawals>().Object);
+            _openingBalance = _account.GetBalance();
+        }
+
         [Fact]
         public void WithdrawalsDecreaseBalance()
         {
             // Given
-            var account = new BankAccount();
-            var openingBalance = account.GetBalance();
+           
             var amountToWithdraw = 10M;
             // When
-            account.Withdraw(amountToWithdraw);
+            _account.Withdraw(amountToWithdraw);
             // Then
-            Assert.Equal(openingBalance - amountToWithdraw, account.GetBalance());
+            Assert.Equal(_openingBalance - amountToWithdraw, _account.GetBalance());
         }
 
         // Replicate the bad behavior (this should pass when you start, demonstrating where the problem is)
@@ -29,13 +38,12 @@ namespace BankingTests
         [Fact]
         public void OverdraftNotAllowed()
         {
-            var account = new BankAccount();
-            var openingBalance = account.GetBalance();
-            var amountToWithrdaw = openingBalance + 1;
+          
+            var amountToWithrdaw = _openingBalance + 1;
 
             try
             {
-                account.Withdraw(amountToWithrdaw);
+                _account.Withdraw(amountToWithrdaw);
             }
             catch (OverdraftException)
             {
@@ -43,28 +51,30 @@ namespace BankingTests
                 // cool. No problem. Was Expecting that.
             }
 
-            Assert.Equal(openingBalance, account.GetBalance());
+            Assert.Equal(_openingBalance, _account.GetBalance());
         }
 
         [Fact]
         public void OverdraftThrowsException()
         {
-            var account = new BankAccount();
+           
 
             Assert.Throws<OverdraftException>(() =>
-                account.Withdraw(account.GetBalance() + 0.1M)
+                _account.Withdraw(_account.GetBalance() + 0.1M)
             );
         }
 
         [Fact]
         public void CanTakeAllTheMoney()
         {
-            var account = new BankAccount();
-            var openingBalance = account.GetBalance();
+            // Given - Arrange - Establish Context
+           
 
-            account.Withdraw(openingBalance);
+            // When - Act 
+            _account.Withdraw(_openingBalance);
 
-            Assert.Equal(0, account.GetBalance());
+            // Then - Assert 
+            Assert.Equal(0, _account.GetBalance());
         }
     }
 }
